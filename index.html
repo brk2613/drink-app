@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>栄養ドリンクカウンター</title>
+
+<style>
+body{
+    margin:0;
+    font-family:"Yu Gothic","Hiragino Sans","Meiryo",sans-serif;
+    background:linear-gradient(135deg,#ffe8f1,#fff4f8,#fff8ef);
+    color:#555;
+    font-size:14px;
+}
+
+.container{
+    max-width:1000px;
+    margin:12px auto;
+    padding:12px;
+}
+
+h1{
+    text-align:center;
+    color:#ff4f8b;
+    margin:0 0 6px;
+    font-size:28px;
+}
+
+.sub{
+    text-align:center;
+    color:#888;
+    margin-bottom:14px;
+    font-size:13px;
+}
+
+.card{
+    background:#fff;
+    border-radius:20px;
+    padding:16px;
+    box-shadow:0 6px 14px rgba(0,0,0,0.08);
+    margin-bottom:14px;
+}
+
+.two-column{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.section-title{
+    margin:0 0 8px;
+    color:#ff4f8b;
+    font-size:20px;
+}
+
+label{
+    display:block;
+    text-align:left;
+    margin:8px 0 4px;
+    font-weight:bold;
+    color:#666;
+    font-size:13px;
+}
+
+select,input{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid #ffd2e1;
+    border-radius:12px;
+    box-sizing:border-box;
+    font-size:14px;
+    background:#fffafc;
+}
+
+button{
+    border:none;
+    border-radius:12px;
+    padding:10px 14px;
+    font-size:14px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+button:hover{
+    opacity:0.92;
+}
+
+.main-btn{
+    width:100%;
+    background:#ff7aa8;
+    color:white;
+    font-weight:bold;
+    margin-top:12px;
+}
+
+.small-btn{
+    background:#fff0f5;
+    color:#ff4f8b;
+}
+
+.add-btn{
+    background:#ffb5cb;
+    color:white;
+}
+
+.danger-btn{
+    background:#ff8cae;
+    color:white;
+}
+
+.delete-btn{
+    background:#fff;
+    color:#ff6b98;
+    border:1px solid #ffc4d7;
+    padding:7px 10px;
+    border-radius:10px;
+    white-space:nowrap;
+}
+
+.delete-btn:hover{
+    background:#fff0f5;
+}
+
+.notice{
+    margin-top:10px;
+    padding:10px;
+    background:#fff4cf;
+    border-radius:12px;
+    color:#8a6a00;
+    font-weight:bold;
+    display:none;
+    font-size:13px;
+}
+
+.inline-row{
+    display:flex;
+    gap:8px;
+    align-items:end;
+    flex-wrap:wrap;
+}
+
+.inline-row input{
+    flex:1;
+    min-width:150px;
+}
+
+.inline-row button{
+    min-width:100px;
+}
+
+.tag-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:10px;
+}
+
+.tag{
+    background:#ffe5ef;
+    color:#ff4f8b;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:13px;
+}
+
+.compact-form{
+    display:grid;
+    grid-template-columns:1.3fr 0.9fr 1.4fr auto;
+    gap:8px;
+    align-items:end;
+}
+
+.compact-form .field{
+    min-width:0;
+}
+
+.compact-form button{
+    height:40px;
+    margin-top:0;
+    min-width:96px;
+}
+
+.trash-visual{
+    text-align:center;
+    margin-bottom:10px;
+    padding:12px;
+    background:#fff8fb;
+    border-radius:18px;
+    border:1px solid #ffe3ee;
+}
+
+.trash-can-wrap{
+    position:relative;
+    width:260px;
+    height:190px;
+    margin:0 auto 8px;
+}
+
+.trash-can-wrap.shake{
+    animation:trashShake 0.35s ease-in-out;
+}
+
+@keyframes trashShake{
+    0%{ transform:translateX(0); }
+    20%{ transform:translateX(-4px); }
+    40%{ transform:translateX(4px); }
+    60%{ transform:translateX(-3px); }
+    80%{ transform:translateX(3px); }
+    100%{ transform:translateX(0); }
+}
+
+#fallingItemLayer{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:30;
+    overflow:visible;
+}
+
+.trash-img{
+    position:absolute;
+    left:50%;
+    bottom:0;
+    transform:translateX(-50%);
+    width:150px;
+    image-rendering:pixelated;
+    z-index:10;
+}
+
+.stack-area{
+    position:absolute;
+    left:50%;
+    bottom:24px;
+    transform:translateX(-50%);
+    width:120px;
+    height:95px;
+    overflow:hidden;
+    pointer-events:none;
+    z-index:20;
+}
+
+.stack-item{
+    position:absolute;
+    width:30px;
+    height:auto;
+    image-rendering:pixelated;
+    transform-origin:center bottom;
+}
+
+.falling-item{
+    position:absolute;
+    width:30px;
+    height:auto;
+    z-index:35;
+    image-rendering:pixelated;
+    animation:dropItemBounce 1.05s ease-in forwards;
+    transform-origin:center center;
+}
+
+@keyframes dropItemBounce{
+    0%{
+        transform:translateY(0) rotate(-10deg) scale(1);
+        opacity:0;
+    }
+    10%{
+        opacity:1;
+    }
+    60%{
+        transform:translateY(96px) rotate(8deg) scale(1);
+        opacity:1;
+    }
+    78%{
+        transform:translateY(114px) rotate(-8deg) scale(0.96);
+        opacity:1;
+    }
+    88%{
+        transform:translateY(102px) rotate(4deg) scale(1.02);
+        opacity:1;
+    }
+    100%{
+        transform:translateY(108px) rotate(0deg) scale(0.98);
+        opacity:0;
+    }
+}
+
+.trash-message{
+    color:#ff4f8b;
+    font-weight:bold;
+    margin:6px 0 8px;
+    font-size:14px;
+}
+
+.bottle-count-badge{
+    display:inline-block;
+    margin-top:8px;
+    background:#ffe5ef;
+    color:#ff4f8b;
+    border-radius:999px;
+    padding:6px 12px;
+    font-weight:bold;
+    font-size:13px;
+}
+
+.progress-wrap{
+    margin-top:10px;
+}
+
+.progress-label{
+    font-size:12px;
+    color:#888;
+    margin-bottom:5px;
+}
+
+.progress-bar{
+    width:100%;
+    height:12px;
+    background:#ffe6ef;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,#ffb0c9,#ff6fa2);
+    width:0%;
+    transition:0.3s;
+}
+
+.achievement{
+    margin-top:8px;
+    text-align:center;
+    font-size:13px;
+    font-weight:bold;
+    color:#c95f87;
+}
+
+.trash-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+    gap:8px;
+    margin-top:10px;
+}
+
+.trash-item{
+    background:#fff7fa;
+    border:1px solid #ffdce8;
+    border-radius:14px;
+    padding:10px;
+    text-align:center;
+}
+
+.trash-count{
+    font-size:22px;
+    font-weight:bold;
+    color:#ff4f8b;
+    margin-top:4px;
+}
+
+.trash-stock-title{
+    margin-top:12px;
+    margin-bottom:8px;
+    font-weight:bold;
+    color:#c95f87;
+}
+
+.trash-stock-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.trash-stock-item{
+    width:78px;
+    background:#fff7fa;
+    border:1px solid #ffdce8;
+    border-radius:14px;
+    padding:8px;
+    text-align:center;
+    cursor:pointer;
+}
+
+.trash-stock-item:hover{
+    background:#fff0f5;
+}
+
+.trash-stock-item img{
+    width:42px;
+    image-rendering:pixelated;
+}
+
+.trash-stock-label{
+    font-size:11px;
+    color:#777;
+    margin-top:4px;
+}
+
+.stock-detail{
+    margin-top:10px;
+    padding:10px;
+    border-radius:14px;
+    background:#fff7fa;
+    border:1px solid #ffdce8;
+}
+
+.stock-detail-title{
+    font-weight:bold;
+    color:#c95f87;
+    margin-bottom:8px;
+}
+
+.stock-detail-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+}
+
+.stock-detail-grid img{
+    width:34px;
+    image-rendering:pixelated;
+}
+
+.chart-wrap{
+    background:#fff9fb;
+    border:1px solid #ffdce8;
+    border-radius:18px;
+    padding:14px;
+}
+
+.bar-chart{
+    display:flex;
+    align-items:flex-end;
+    gap:10px;
+    min-height:180px;
+    padding:6px 4px 0;
+    overflow-x:auto;
+}
+
+.bar-item{
+    min-width:54px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+}
+
+.bar-value{
+    font-size:11px;
+    color:#a55;
+    font-weight:bold;
+}
+
+.bar{
+    width:36px;
+    border-radius:10px 10px 5px 5px;
+    background:linear-gradient(180deg,#ffbfd4,#ff7aa8);
+    min-height:8px;
+}
+
+.bar-label{
+    font-size:11px;
+    text-align:center;
+    color:#666;
+    word-break:break-word;
+}
+
+.calendar-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    gap:10px;
+}
+
+.calendar-title{
+    font-size:18px;
+    font-weight:bold;
+    color:#ff4f8b;
+}
+
+.calendar-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+}
+
+.calendar-week{
+    text-align:center;
+    font-weight:bold;
+    color:#c06;
+    padding:6px 0;
+    font-size:13px;
+}
+
+.calendar-day{
+    min-height:64px;
+    background:#fff7fa;
+    border:1px solid #ffdce8;
+    border-radius:14px;
+    padding:6px;
+    text-align:left;
+    cursor:pointer;
+    position:relative;
+}
+
+.calendar-day:hover{
+    background:#fff0f5;
+}
+
+.calendar-day.other-month{
+    opacity:0.35;
+}
+
+.calendar-day.selected{
+    outline:3px solid #ff9cbc;
+    background:#fff0f6;
+}
+
+.day-number{
+    font-weight:bold;
+    color:#666;
+    font-size:12px;
+}
+
+.day-count{
+    margin-top:4px;
+    display:inline-block;
+    background:#ff7aa8;
+    color:white;
+    border-radius:999px;
+    padding:2px 6px;
+    font-size:10px;
+}
+
+.selected-date-box{
+    margin-top:12px;
+    padding:12px;
+    border-radius:14px;
+    background:#fff7fa;
+    border:1px solid #ffdce8;
+}
+
+.history-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    background:linear-gradient(90deg,#fff,#fff5f8);
+    border:1px solid #ffe1eb;
+    border-radius:14px;
+    padding:12px;
+}
+
+.history-left{
+    text-align:left;
+    flex:1;
+}
+
+.history-name{
+    font-weight:bold;
+    color:#ff4f8b;
+    margin-bottom:4px;
+}
+
+.history-date{
+    font-size:12px;
+    color:#888;
+    margin-bottom:4px;
+}
+
+.history-memo{
+    font-size:13px;
+    color:#666;
+    margin-bottom:4px;
+}
+
+.footer-card{
+    display:flex;
+    justify-content:center;
+}
+
+.footer-btns{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.empty{
+    text-align:center;
+    color:#999;
+    padding:14px;
+}
+
+@media(max-width:800px){
+    .two-column{
+        grid-template-columns:1fr;
+    }
+
+    .compact-form{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .compact-form button{
+        grid-column:1 / -1;
+    }
+}
+
+@media(max-width:600px){
+    .container{
+        padding:10px;
+        margin:8px auto;
+    }
+
+    .card{
+        padding:14px;
+        margin-bottom:10px;
+    }
+
+    .compact-form{
+        grid-template-columns:1fr;
+    }
+
+    .trash-can-wrap{
+        width:220px;
+        height:165px;
+    }
+
+    .trash-img{
+        width:130px;
+    }
+
+    .stack-area{
+        width:100px;
+        height:76px;
+        bottom:20px;
+    }
+
+    .stack-item,
+    .falling-item{
+        width:24px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>🥤 栄養ドリンクカウンター</h1>
+    <div class="sub">ドット絵画像で記録して、ゴミ箱に積み上げよう✨</div>
+
+    <div class="two-column">
+        <div class="card">
+            <h2 class="section-title">記録する</h2>
+
+            <div class="compact-form">
+                <div class="field">
+                    <label for="drink">ドリンク</label>
+                    <select id="drink"></select>
+                </div>
+
+                <div class="field">
+                    <label for="date">日付</label>
+                    <input type="date" id="date">
+                </div>
+
+                <div class="field">
+                    <label for="memo">メモ</label>
+                    <input type="text" id="memo" placeholder="メモ">
+                </div>
+
+                <button class="main-btn" onclick="addDrink()">飲んだ！</button>
+            </div>
+
+            <div class="notice" id="warningBox">⚠️ 今日3本以上飲んでるで！ 飲みすぎ注意！</div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">ドリンク種類を追加</h2>
+
+            <label for="newDrink">新しいドリンク名</label>
+            <div class="inline-row">
+                <input type="text" id="newDrink" placeholder="例：ユンケル黄帝液">
+                <button class="add-btn" onclick="addDrinkType()">追加する</button>
+            </div>
+
+            <div class="tag-list" id="drinkTypeList"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">ゴミ箱</h2>
+
+        <div class="trash-visual">
+            <div class="trash-can-wrap" id="trashWrap">
+                <div id="fallingItemLayer"></div>
+                <div class="stack-area" id="stackArea"></div>
+                <img src="images/trash_can_pixel.png" alt="ゴミ箱" class="trash-img" id="trashImg">
+            </div>
+
+            <div class="trash-message" id="trashMessage">空瓶 0本</div>
+            <div class="bottle-count-badge" id="bottleBadge">0 / 20 本</div>
+
+            <div class="progress-wrap">
+                <div class="progress-label">ゴミ箱満タンまで</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="achievement" id="achievementText">まずは1本記録してみよう！</div>
+        </div>
+
+        <div class="trash-grid" id="trashSummary"></div>
+
+        <div class="trash-stock-title">満杯になったゴミ箱</div>
+        <div class="trash-stock-list" id="trashStockList"></div>
+
+        <div class="stock-detail" id="stockDetail" style="display:none;">
+            <div class="stock-detail-title" id="stockDetailTitle">ゴミ箱の中身</div>
+            <div class="stock-detail-grid" id="stockDetailGrid"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">ランキング</h2>
+        <div class="chart-wrap">
+            <div class="bar-chart" id="rankingChart"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="calendar-header">
+            <button class="small-btn" onclick="changeMonth(-1)">← 前の月</button>
+            <div class="calendar-title" id="calendarTitle">2026年3月</div>
+            <button class="small-btn" onclick="changeMonth(1)">次の月 →</button>
+        </div>
+
+        <div class="calendar-grid">
+            <div class="calendar-week">日</div>
+            <div class="calendar-week">月</div>
+            <div class="calendar-week">火</div>
+            <div class="calendar-week">水</div>
+            <div class="calendar-week">木</div>
+            <div class="calendar-week">金</div>
+            <div class="calendar-week">土</div>
+        </div>
+
+        <div class="calendar-grid" id="calendarGrid"></div>
+
+        <div class="selected-date-box">
+            <h3 id="selectedDateTitle">日付をクリックすると履歴が見れるよ</h3>
+            <ul id="selectedDateHistory"></ul>
+        </div>
+    </div>
+
+    <div class="card footer-card">
+        <div class="footer-btns">
+            <button class="small-btn" onclick="exportData()">データを表示</button>
+            <button class="danger-btn" onclick="resetAll()">全部リセット</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = "nutrition_drink_records_image_compact_v2";
+const DRINK_TYPES_KEY = "nutrition_drink_types_image_compact_v2";
+const TRASH_STOCK_KEY = "nutrition_trash_stock_image_compact_v2";
+
+let records = [];
+let drinkTypes = [
+    "リポビタンD",
+    "チオビタ",
+    "アリナミンV",
+    "オロナミンC",
+    "チョコラBB",
+    "レッドブル",
+    "モンスター"
+];
+let trashStock = [];
+let currentCalendarDate = new Date();
+let selectedDate = "";
+
+const MAX_PER_TRASH = 20;
+
+const drinkImageMap = {
+    "リポビタンD":"images/ripovitanD_pixel.png",
+    "チオビタ":"images/tiovita_pixel.png",
+    "アリナミンV":"images/alinaminV_pixel.png",
+    "オロナミンC":"images/oronaminC_pixel.png",
+    "チョコラBB":"images/chocolaBB_pixel.png",
+    "レッドブル":"images/redbull_can_pixel.png",
+    "モンスター":"images/monster_can_pixel.png"
+};
+
+function getTodayString(){
+    const now = new Date();
+    return formatDate(now);
+}
+
+function formatDate(dateObj){
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const d = String(dateObj.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + d;
+}
+
+function getDrinkImage(drinkName){
+    if(drinkImageMap[drinkName]){
+        return drinkImageMap[drinkName];
+    }
+    return "images/mystery_drink_pixel.png";
+}
+
+function saveData(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    localStorage.setItem(DRINK_TYPES_KEY, JSON.stringify(drinkTypes));
+    localStorage.setItem(TRASH_STOCK_KEY, JSON.stringify(trashStock));
+}
+
+function rebuildTrashStockFromRecords(){
+    trashStock = [];
+    const totalFull = Math.floor(records.length / MAX_PER_TRASH);
+    if(totalFull === 0) return;
+
+    const oldestFirst = [...records].reverse();
+
+    for(let i = 0; i < totalFull; i++){
+        const start = i * MAX_PER_TRASH;
+        const end = start + MAX_PER_TRASH;
+        const oneTrash = oldestFirst.slice(start, end);
+        trashStock.push(oneTrash);
+    }
+}
+
+function loadData(){
+    const savedRecords = localStorage.getItem(STORAGE_KEY);
+    const savedTypes = localStorage.getItem(DRINK_TYPES_KEY);
+    const savedTrashStock = localStorage.getItem(TRASH_STOCK_KEY);
+
+    if(savedRecords){
+        records = JSON.parse(savedRecords);
+        for(let record of records){
+            if(record.binAdded === undefined){
+                record.binAdded = true;
+            }
+        }
+    }
+
+    if(savedTypes){
+        drinkTypes = JSON.parse(savedTypes);
+    }else{
+        drinkTypes = [...drinkTypes];
+    }
+
+    drinkTypes = drinkTypes.filter(name => name && name.trim() !== "");
+    drinkTypes = [...new Set(drinkTypes)];
+
+    if(savedTrashStock){
+        trashStock = JSON.parse(savedTrashStock);
+    }else{
+        rebuildTrashStockFromRecords();
+        saveData();
+    }
+}
+
+function renderDrinkSelect(){
+    const select = document.getElementById("drink");
+    select.innerHTML = "";
+
+    if(drinkTypes.length === 0){
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "ドリンクを追加してな";
+        select.appendChild(option);
+        return;
+    }
+
+    for(let drink of drinkTypes){
+        const option = document.createElement("option");
+        option.value = drink;
+        option.textContent = drink;
+        select.appendChild(option);
+    }
+}
+
+function renderDrinkTypeList(){
+    const list = document.getElementById("drinkTypeList");
+    list.innerHTML = "";
+
+    if(drinkTypes.length === 0){
+        list.innerHTML = "<div class='empty'>まだドリンク種類がないよ</div>";
+        return;
+    }
+
+    for(let drink of drinkTypes){
+        const span = document.createElement("span");
+        span.className = "tag";
+        span.textContent = drink;
+        list.appendChild(span);
+    }
+}
+
+function addDrinkType(){
+    const input = document.getElementById("newDrink");
+    const value = input.value.trim();
+
+    if(value === ""){
+        alert("ドリンク名を入力してな");
+        return;
+    }
+
+    if(drinkTypes.includes(value)){
+        alert("そのドリンクはもう登録済みやで");
+        return;
+    }
+
+    drinkTypes.push(value);
+    drinkTypes = [...new Set(drinkTypes)];
+    saveData();
+    renderDrinkSelect();
+    renderDrinkTypeList();
+    input.value = "";
+    alert("ドリンク種類を追加したで！");
+}
+
+function addDrink(){
+    const drink = document.getElementById("drink").value;
+    const date = document.getElementById("date").value;
+    const memo = document.getElementById("memo").value.trim();
+
+    if(drink === ""){
+        alert("先にドリンク種類を追加してな");
+        return;
+    }
+
+    if(date === ""){
+        alert("日付を入れてな");
+        return;
+    }
+
+    const record = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        drink: drink,
+        date: date,
+        memo: memo,
+        binAdded: true
+    };
+
+    records.unshift(record);
+    saveData();
+
+    document.getElementById("memo").value = "";
+
+    animateItemDrop(record, function(){
+        rebuildTrashStockFromRecords();
+        saveData();
+        updateScreen();
+
+        if(selectedDate === "" || selectedDate === date){
+            selectedDate = date;
+            updateSelectedDateHistory();
+        }
+    });
+}
+
+function deleteRecord(id){
+    const result = confirm("この記録を削除していい？");
+    if(!result) return;
+
+    records = records.filter(record => record.id !== id);
+    rebuildTrashStockFromRecords();
+    saveData();
+    updateScreen();
+}
+
+function resetAll(){
+    const result = confirm("記録を全部消してもいい？");
+    if(!result) return;
+
+    records = [];
+    trashStock = [];
+    selectedDate = "";
+    saveData();
+    updateScreen();
+}
+
+function getDrinkCounts(){
+    const counts = {};
+    for(let record of records){
+        if(counts[record.drink]){
+            counts[record.drink]++;
+        }else{
+            counts[record.drink] = 1;
+        }
+    }
+    return counts;
+}
+
+function getBinCounts(){
+    const counts = {};
+    for(let record of records){
+        if(record.binAdded){
+            if(counts[record.drink]){
+                counts[record.drink]++;
+            }else{
+                counts[record.drink] = 1;
+            }
+        }
+    }
+    return counts;
+}
+
+function getTodayCount(){
+    const today = getTodayString();
+    let count = 0;
+    for(let record of records){
+        if(record.date === today){
+            count++;
+        }
+    }
+    return count;
+}
+
+function updateRankingChart(){
+    const chart = document.getElementById("rankingChart");
+    chart.innerHTML = "";
+
+    const counts = getDrinkCounts();
+    const ranking = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+    if(ranking.length === 0){
+        chart.innerHTML = "<div class='empty'>まだランキングはないよ</div>";
+        return;
+    }
+
+    const maxValue = ranking[0][1];
+
+    for(let item of ranking){
+        const name = item[0];
+        const value = item[1];
+        const height = Math.max(12, Math.round((value / maxValue) * 140));
+
+        const div = document.createElement("div");
+        div.className = "bar-item";
+        div.innerHTML = `
+            <div class="bar-value">${value}本</div>
+            <div class="bar" style="height:${height}px;"></div>
+            <div class="bar-label">${name}</div>
+        `;
+        chart.appendChild(div);
+    }
+}
+
+function updateTrashSummary(){
+    const trashSummary = document.getElementById("trashSummary");
+    trashSummary.innerHTML = "";
+
+    const binCounts = getBinCounts();
+    const binEntries = Object.entries(binCounts).sort((a, b) => b[1] - a[1]);
+
+    if(binEntries.length === 0){
+        trashSummary.innerHTML = "<div class='empty'>まだ空瓶はないよ</div>";
+        return;
+    }
+
+    for(let item of binEntries){
+        const div = document.createElement("div");
+        div.className = "trash-item";
+        div.innerHTML = `
+            <div>${item[0]}</div>
+            <div class="trash-count">${item[1]}</div>
+            <div>本</div>
+        `;
+        trashSummary.appendChild(div);
+    }
+}
+
+function animateItemDrop(record, callback){
+    const layer = document.getElementById("fallingItemLayer");
+    const trashWrap = document.getElementById("trashWrap");
+
+    if(!layer || !record){
+        if(callback) callback();
+        return;
+    }
+
+    const img = document.createElement("img");
+    img.className = "falling-item";
+    img.src = getDrinkImage(record.drink);
+    img.alt = record.drink;
+
+    const startLeftList = [90, 110, 130, 150];
+    const startLeft = startLeftList[Math.floor(Math.random() * startLeftList.length)];
+
+    img.style.left = startLeft + "px";
+    img.style.top = "0px";
+
+    layer.appendChild(img);
+
+    if(trashWrap){
+        setTimeout(function(){
+            trashWrap.classList.remove("shake");
+            void trashWrap.offsetWidth;
+            trashWrap.classList.add("shake");
+        }, 680);
+
+        setTimeout(function(){
+            trashWrap.classList.remove("shake");
+        }, 1100);
+    }
+
+    setTimeout(function(){
+        img.remove();
+        if(callback) callback();
+    }, 1100);
+}
+
+function getCurrentTrashItems(){
+    const fullTrashCount = Math.floor(records.length / MAX_PER_TRASH);
+    const remainder = records.length % MAX_PER_TRASH;
+
+    if(remainder === 0){
+        return [];
+    }
+
+    const oldestFirst = [...records].reverse();
+    const start = fullTrashCount * MAX_PER_TRASH;
+    return oldestFirst.slice(start);
+}
+
+function updateStackArea(){
+    const area = document.getElementById("stackArea");
+    const trashImg = document.getElementById("trashImg");
+    const msg = document.getElementById("trashMessage");
+    const badge = document.getElementById("bottleBadge");
+    const progressFill = document.getElementById("progressFill");
+    const achievementText = document.getElementById("achievementText");
+
+    area.innerHTML = "";
+
+    const currentItems = getCurrentTrashItems();
+    const currentCount = currentItems.length;
+    const total = records.length;
+
+    for(let i = 0; i < currentCount; i++){
+        const record = currentItems[i];
+        const img = document.createElement("img");
+
+        img.className = "stack-item";
+        img.src = getDrinkImage(record.drink);
+        img.alt = record.drink;
+
+        const col = i % 4;
+        const row = Math.floor(i / 4);
+        const left = 6 + (col * 26);
+        const bottom = 2 + (row * 18);
+        const rotateList = [-10, -5, 4, 9];
+        const angle = rotateList[i % rotateList.length];
+
+        img.style.left = left + "px";
+        img.style.bottom = bottom + "px";
+        img.style.transform = "rotate(" + angle + "deg)";
+        img.style.zIndex = String(10 + row);
+
+        area.appendChild(img);
+    }
+
+    badge.innerText = currentCount + " / 20 本";
+
+    const progress = Math.min((currentCount / MAX_PER_TRASH) * 100, 100);
+    progressFill.style.width = progress + "%";
+
+    if(currentCount >= MAX_PER_TRASH){
+        msg.innerText = "🎉 ゴミ箱満タン！";
+        achievementText.innerText = "すごい！ 20本達成！";
+        trashImg.style.filter = "brightness(0.9)";
+    }else{
+        msg.innerText = "空瓶 " + currentCount + "本";
+        trashImg.style.filter = "none";
+
+        if(total === 0){
+            achievementText.innerText = "まずは1本記録してみよう！";
+        }else if(currentCount === 0 && trashStock.length > 0){
+            achievementText.innerText = "新しいゴミ箱を使い始めたで！";
+        }else if(currentCount < 5){
+            achievementText.innerText = "順調に記録できてるで！";
+        }else if(currentCount < 10){
+            achievementText.innerText = "いい感じ！";
+        }else{
+            achievementText.innerText = "満タンまであと少し！";
+        }
+    }
+}
+
+function renderTrashStock(){
+    const list = document.getElementById("trashStockList");
+    list.innerHTML = "";
+
+    if(trashStock.length === 0){
+        list.innerHTML = "<div class='empty'>まだ満杯になったゴミ箱はないよ</div>";
+        document.getElementById("stockDetail").style.display = "none";
+        return;
+    }
+
+    for(let i = 0; i < trashStock.length; i++){
+        const oneTrash = trashStock[i];
+        const div = document.createElement("div");
+        div.className = "trash-stock-item";
+        div.innerHTML = `
+            <img src="images/trash_can_pixel.png" alt="満杯ゴミ箱">
+            <div class="trash-stock-label">${i + 1}個目<br>${oneTrash.length}本</div>
+        `;
+        div.onclick = function(){
+            showTrashStockDetail(i);
+        };
+        list.appendChild(div);
+    }
+}
+
+function showTrashStockDetail(index){
+    const detail = document.getElementById("stockDetail");
+    const title = document.getElementById("stockDetailTitle");
+    const grid = document.getElementById("stockDetailGrid");
+
+    grid.innerHTML = "";
+
+    const oneTrash = trashStock[index];
+    title.textContent = (index + 1) + "個目のゴミ箱の中身";
+
+    for(let item of oneTrash){
+        const img = document.createElement("img");
+        img.src = getDrinkImage(item.drink);
+        img.alt = item.drink;
+        grid.appendChild(img);
+    }
+
+    detail.style.display = "block";
+}
+
+function updateWarning(){
+    const todayCount = getTodayCount();
+    const warningBox = document.getElementById("warningBox");
+    if(todayCount >= 3){
+        warningBox.style.display = "block";
+    }else{
+        warningBox.style.display = "none";
+    }
+}
+
+function getRecordsByDate(dateStr){
+    return records.filter(record => record.date === dateStr);
+}
+
+function changeMonth(diff){
+    currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + diff, 1);
+    renderCalendar();
+}
+
+function renderCalendar(){
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+
+    document.getElementById("calendarTitle").textContent = year + "年" + (month + 1) + "月";
+
+    const calendarGrid = document.getElementById("calendarGrid");
+    calendarGrid.innerHTML = "";
+
+    const firstDay = new Date(year, month, 1);
+    const startDay = firstDay.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for(let i = 0; i < startDay; i++){
+        const div = document.createElement("div");
+        div.className = "calendar-day other-month";
+        calendarGrid.appendChild(div);
+    }
+
+    for(let day = 1; day <= daysInMonth; day++){
+        const dateObj = new Date(year, month, day);
+        const dateStr = formatDate(dateObj);
+        const dayRecords = getRecordsByDate(dateStr);
+
+        const div = document.createElement("div");
+        div.className = "calendar-day";
+
+        if(selectedDate === dateStr){
+            div.classList.add("selected");
+        }
+
+        let html = "<div class='day-number'>" + day + "</div>";
+        if(dayRecords.length > 0){
+            html += "<div class='day-count'>" + dayRecords.length + "本</div>";
+        }
+
+        div.innerHTML = html;
+        div.onclick = function(){
+            selectedDate = dateStr;
+            renderCalendar();
+            updateSelectedDateHistory();
+        };
+
+        calendarGrid.appendChild(div);
+    }
+
+    const usedCells = startDay + daysInMonth;
+    const remain = (7 - (usedCells % 7)) % 7;
+
+    for(let i = 0; i < remain; i++){
+        const div = document.createElement("div");
+        div.className = "calendar-day other-month";
+        calendarGrid.appendChild(div);
+    }
+}
+
+function updateSelectedDateHistory(){
+    const title = document.getElementById("selectedDateTitle");
+    const list = document.getElementById("selectedDateHistory");
+    list.innerHTML = "";
+
+    if(selectedDate === ""){
+        title.textContent = "日付をクリックすると履歴が見れるよ";
+        list.innerHTML = "<li class='empty'>まだ選ばれていないよ</li>";
+        return;
+    }
+
+    title.textContent = selectedDate + " の履歴";
+
+    const dayRecords = getRecordsByDate(selectedDate);
+
+    if(dayRecords.length === 0){
+        list.innerHTML = "<li class='empty'>この日の記録はないよ</li>";
+        return;
+    }
+
+    for(let record of dayRecords){
+        const memoText = record.memo ? record.memo : "メモなし";
+
+        const li = document.createElement("li");
+        li.className = "history-item";
+        li.innerHTML = `
+            <div class="history-left">
+                <div class="history-name">${record.drink}</div>
+                <div class="history-date">${record.date}</div>
+                <div class="history-memo">メモ：${memoText}</div>
+            </div>
+            <button class="delete-btn" onclick="deleteRecord(${record.id})">消す</button>
+        `;
+        list.appendChild(li);
+    }
+}
+
+function updateScreen(){
+    updateWarning();
+    updateTrashSummary();
+    updateStackArea();
+    renderTrashStock();
+    updateRankingChart();
+    renderDrinkSelect();
+    renderDrinkTypeList();
+    renderCalendar();
+    updateSelectedDateHistory();
+}
+
+function exportData(){
+    if(records.length === 0){
+        alert("まだデータがないよ");
+        return;
+    }
+    alert(JSON.stringify(records, null, 2));
+}
+
+document.getElementById("date").value = getTodayString();
+loadData();
+updateScreen();
+</script>
+</body>
+</html>
