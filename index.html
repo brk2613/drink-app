@@ -419,6 +419,14 @@ button:hover{
 .stock-detail-grid img{
     width:34px;
     image-rendering:pixelated;
+    transition:transform 0.2s ease;
+    cursor:pointer;
+}
+
+.stock-detail-grid img:hover{
+    transform:scale(10);
+    position:relative;
+    z-index:999;
 }
 
 .chart-wrap{
