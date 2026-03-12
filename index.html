@@ -100,8 +100,9 @@ button:hover{
 }
 
 .add-btn{
-    background:#ffb5cb;
+    background:#ff7aa8;
     color:white;
+    font-weight:bold;
 }
 
 .danger-btn{
@@ -361,7 +362,7 @@ button:hover{
     margin-top:12px;
     margin-bottom:8px;
     font-weight:bold;
-    color:#c95f87;
+    color:#c06;
 }
 
 .trash-stock-list{
@@ -1177,7 +1178,7 @@ function updateStackArea(){
         achievementText.innerText = "すごい！ 20本達成！";
         trashImg.style.filter = "brightness(0.9)";
     }else{
-        msg.innerText = "空瓶 " + currentCount + "本";
+        msg.innerText = "";
         trashImg.style.filter = "none";
 
         if(total === 0){
